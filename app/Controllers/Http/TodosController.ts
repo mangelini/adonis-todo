@@ -36,21 +36,25 @@ export default class TodosController {
       title: schema.string.optional({ trim: true }),
       description: schema.string.optional({ trim: true }),
       status: schema.enum.optional(Object.values(Status)),
+      page: schema.number.optional(),
+      limit: schema.number.optional(),
     });
 
     const filterData = await request.validate({
       schema: filterSchema,
     });
 
+    const page = filterData.page || 1;
+    const limit = filterData.limit || 10;
     let todos;
     if (auth.user?.isAdmin) {
-      todos = await Todo.query().filter(filterData).exec();
+      todos = await Todo.query().filter(filterData).paginate(page, limit);
     } else {
       todos = await auth.user
         ?.related("todos")
         .query()
         .filter(filterData)
-        .exec();
+        .paginate(page, limit);
     }
 
     await bouncer.with("TodoPolicy").authorize("getTodos", todos);

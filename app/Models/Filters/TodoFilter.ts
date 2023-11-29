@@ -6,10 +6,7 @@ export default class TodoFilter extends BaseModelFilter {
   public $query: ModelQueryBuilderContract<typeof Todo, Todo>;
 
   title(value: string) {
-    this.$query
-      .where("title", "like", `%${value}%`)
-      .orWhere("title", "icontains", `%${value}%`)
-      .orWhere("title", "startsWith", `%${value}%`);
+    this.$query.where("title", "like", `%${value}%`);
   }
 
   description(value: string) {
