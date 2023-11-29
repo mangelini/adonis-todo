@@ -24,7 +24,7 @@ Route.post("/login", "AuthController.login").as("auth.login");
 Route.post("/register", "AuthController.register").as("auth.register");
 Route.group(() => {
   Route.post("/logout", "AuthController.logout").as("auth.logout");
-  Route.get("/profile", "AuthController.profile").as("auth.profile");
+  Route.post("/profile", "AuthController.profile").as("auth.profile");
 
   Route.post("/todos", "TodosController.create").as("todos.create");
   Route.post("/getTodos", "TodosController.getTodos").as("todos.getTodos");

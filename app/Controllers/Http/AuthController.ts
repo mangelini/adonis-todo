@@ -54,9 +54,20 @@ export default class AuthController {
     return response.json({ message: "Logout successful" });
   }
 
-  public async profile({ response, auth }: HttpContextContract) {
+  public async profile({ request, response, auth }: HttpContextContract) {
     if (auth.user?.isAdmin) {
-      const allUsers = await User.all();
+      const paginationSchema = schema.create({
+        page: schema.number.optional(),
+        limit: schema.number.optional(),
+      });
+
+      const filterData = await request.validate({
+        schema: paginationSchema,
+      });
+      const page = filterData.page || 1;
+      const limit = filterData.limit || 10;
+
+      const allUsers = await User.query().paginate(page, limit);
       return response.json(allUsers);
     }
     return response.json(auth.user);
