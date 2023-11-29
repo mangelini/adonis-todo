@@ -19,17 +19,19 @@ export default class TodosController {
     return response.json(todo);
   }
 
-  public async getById({ params, response, auth }: HttpContextContract) {
-    const todo = await auth.user
-      ?.related("todos")
-      .query()
-      .where("id", params.id)
-      .firstOrFail();
+  public async getById({ params, response, bouncer }: HttpContextContract) {
+    const todo = await Todo.query().where("id", params.id).firstOrFail();
+    await bouncer.with("TodoPolicy").authorize("getById", todo);
 
     return response.json(todo);
   }
 
-  public async getTodos({ request, response, auth }: HttpContextContract) {
+  public async getTodos({
+    request,
+    response,
+    bouncer,
+    auth,
+  }: HttpContextContract) {
     const filterSchema = schema.create({
       title: schema.string.optional({ trim: true }),
       description: schema.string.optional({ trim: true }),
@@ -40,23 +42,25 @@ export default class TodosController {
       schema: filterSchema,
     });
 
+    let todos;
     if (auth.user?.isAdmin) {
-      const todos = await Todo.filter(filterData).exec();
-      return response.json(todos);
+      todos = await Todo.query().filter(filterData).exec();
+    } else {
+      todos = await auth.user
+        ?.related("todos")
+        .query()
+        .filter(filterData)
+        .exec();
     }
 
-    const todos = await auth.user
-      ?.related("todos")
-      .query()
-      .filter(filterData)
-      .exec();
+    await bouncer.with("TodoPolicy").authorize("getTodos", todos);
+
     return response.json(todos);
   }
 
   public async update({
     request,
     response,
-    auth,
     params,
     bouncer,
   }: HttpContextContract) {
@@ -72,11 +76,7 @@ export default class TodosController {
         schema: todoSchema,
       });
 
-      todo = await auth.user
-        ?.related("todos")
-        .query()
-        .where("id", params.id)
-        .firstOrFail();
+      todo = await Todo.query().where("id", params.id).firstOrFail();
 
       await bouncer.with("TodoPolicy").authorize("update", todo);
 

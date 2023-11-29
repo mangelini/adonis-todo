@@ -10,4 +10,8 @@ export default class TodoPolicy extends BasePolicy {
   public async getById(user: User, todo: Todo) {
     return user.id === todo.userId || user.isAdmin;
   }
+
+  public async getTodos(user: User, todos: Todo[]) {
+    return todos.every((todo) => todo.userId === user.id) || user.isAdmin;
+  }
 }
