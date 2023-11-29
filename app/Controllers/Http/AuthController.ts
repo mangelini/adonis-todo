@@ -59,15 +59,23 @@ export default class AuthController {
       const paginationSchema = schema.create({
         page: schema.number.optional(),
         limit: schema.number.optional(),
+        orderBy: schema.string.optional(),
+        orderDirection: schema.enum.optional(["asc", "desc"]),
       });
 
       const filterData = await request.validate({
         schema: paginationSchema,
       });
+
       const page = filterData.page || 1;
       const limit = filterData.limit || 10;
+      const orderBy = filterData.orderBy || "id";
+      const orderDirection =
+        (filterData.orderDirection as "asc" | "desc") || "asc";
 
-      const allUsers = await User.query().paginate(page, limit);
+      const allUsers = await User.query()
+        .orderBy(orderBy, orderDirection)
+        .paginate(page, limit);
       return response.json(allUsers);
     }
     return response.json(auth.user);
